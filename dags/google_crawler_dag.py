@@ -58,45 +58,41 @@ with DAG(
     )
 
     # Google Play reviews scraping tasks
-    with TaskGroup(group_id='google_reviews') as google_reviews:
+    def create_google_tasks(**kwargs):
+        ti = kwargs['ti']
+        google_app_ids = ti.xcom_pull(task_ids='get_scrape_config', key='google_app_ids')
+        for app_id in google_app_ids:
+            PythonOperator(
+                task_id=f'scrape_google_{app_id}',
+                python_callable=scrape_google_play_reviews_task,
+                op_args=[app_id],
+                dag=dag,
+            ).execute(context=kwargs)
 
-        def create_google_tasks(**kwargs):
-            ti = kwargs['ti']
-            google_app_ids = ti.xcom_pull(task_ids='get_scrape_config', key='google_app_ids')
-            for app_id in google_app_ids:
-                PythonOperator(
-                    task_id=f'scrape_google_{app_id}',
-                    python_callable=scrape_google_play_reviews_task,
-                    op_args=[app_id],
-                    dag=dag,
-                ).execute(context=kwargs)
+    google_scraping_tasks = PythonOperator(
+        task_id='google_scraping_tasks',
+        python_callable=create_google_tasks,
+        provide_context=True,
+    )
 
-        google_scraping_tasks = PythonOperator(
-            task_id='google_scraping_tasks',
-            python_callable=create_google_tasks,
-            provide_context=True,
-        )
 
-    # Apple App Store reviews scraping tasks
-    with TaskGroup(group_id='apple_reviews') as apple_reviews:
+    def create_apple_tasks(**kwargs):
+        ti = kwargs['ti']
+        apple_app_ids = ti.xcom_pull(task_ids='get_scrape_config', key='apple_app_ids')
+        country = ti.xcom_pull(task_ids='get_scrape_config', key='country')
+        for app_id in apple_app_ids:
+            PythonOperator(
+                task_id=f'scrape_apple_{app_id}',
+                python_callable=scrape_apple_app_store_reviews_task,
+                op_args=[app_id, country],
+                dag=dag,
+            ).execute(context=kwargs)
 
-        def create_apple_tasks(**kwargs):
-            ti = kwargs['ti']
-            apple_app_ids = ti.xcom_pull(task_ids='get_scrape_config', key='apple_app_ids')
-            country = ti.xcom_pull(task_ids='get_scrape_config', key='country')
-            for app_id in apple_app_ids:
-                PythonOperator(
-                    task_id=f'scrape_apple_{app_id}',
-                    python_callable=scrape_apple_app_store_reviews_task,
-                    op_args=[app_id, country],
-                    dag=dag,
-                ).execute(context=kwargs)
-
-        apple_scraping_tasks = PythonOperator(
-            task_id='apple_scraping_tasks',
-            python_callable=create_apple_tasks,
-            provide_context=True,
-        )
+    apple_scraping_tasks = PythonOperator(
+        task_id='apple_scraping_tasks',
+        python_callable=create_apple_tasks,
+        provide_context=True,
+    )
 
     trigger_process_task = TriggerDagRunOperator(
         task_id='trigger_process_task',
