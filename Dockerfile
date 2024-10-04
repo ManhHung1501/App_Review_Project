@@ -24,17 +24,17 @@ ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Download and install Spark
 ENV SPARK_VERSION=3.5.3
-COPY app_review_project/libs/spark-${SPARK_VERSION}-bin-hadoop3.tgz /usr/local/
+# COPY app_review_project/libs/spark-${SPARK_VERSION}-bin-hadoop3.tgz /usr/local/
 
-# Extract Spark and set environment variables
-RUN tar -xvf /usr/local/spark-${SPARK_VERSION}-bin-hadoop3.tgz -C /usr/local/ && \
-    mv /usr/local/spark-${SPARK_VERSION}-bin-hadoop3 /usr/local/spark && \
-    rm /usr/local/spark-${SPARK_VERSION}-bin-hadoop3.tgz
-
-# RUN curl -o spark.tgz "https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz" && \
-#     tar -xvf spark.tgz -C /usr/local/ && \
+# # Extract Spark and set environment variables
+# RUN tar -xvf /usr/local/spark-${SPARK_VERSION}-bin-hadoop3.tgz -C /usr/local/ && \
 #     mv /usr/local/spark-${SPARK_VERSION}-bin-hadoop3 /usr/local/spark && \
-#     rm spark.tgz
+#     rm /usr/local/spark-${SPARK_VERSION}-bin-hadoop3.tgz
+
+RUN curl -o spark.tgz "https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz" && \
+    tar -xvf spark.tgz -C /usr/local/ && \
+    mv /usr/local/spark-${SPARK_VERSION}-bin-hadoop3 /usr/local/spark && \
+    rm spark.tgz
 
 # Set environment variables for Spark
 ENV SPARK_HOME=/usr/local/spark
