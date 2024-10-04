@@ -1,7 +1,12 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 
+# Logs
 logs/*
+
+# Large or unnecessary files
 app_review_project/libs/spark-3.5.3-bin-hadoop3.tgz
 
-/storage
+# Ignore entire storage directory
+/storage/
