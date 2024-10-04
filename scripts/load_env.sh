@@ -2,7 +2,7 @@
 
 # Get the IP address of minio and postgres containers
 MINIO_IP=minio
-POSTGRES_IP=airflow-postgres-1
+POSTGRES_IP=postgres
 
 # Define the path to your .env file
 ENV_FILE="./app_review_project/.env" 
