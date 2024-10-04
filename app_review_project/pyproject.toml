@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "app-review-crawler"
+version = "0.1.0"
+description = ""
+authors = ["ManhHung1501 <hungnm2@ftech.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+google-play-scraper = "^1.2.7"
+pandas = "^2.2.3"
+tqdm = "^4.66.5"
+numpy = "^2.1.1"
+requests = "^2.32.3"
+python-dotenv = "^1.0.1"
+matplotlib = "^3.9.2"
+wordcloud = "^1.9.3"
+minio = "^7.2.9"
+psycopg2-binary = "^2.9.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
