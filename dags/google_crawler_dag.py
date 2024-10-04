@@ -57,7 +57,7 @@ default_args = {
 with DAG(
     dag_id='scrape_reviews_dag',
     default_args=default_args,
-    schedule_interval='0 * * * *',
+    schedule_interval='0 0 * * *',
     start_date=datetime(2024, 10, 1),
     catchup=False,
 ) as dag:
