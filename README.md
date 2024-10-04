@@ -34,23 +34,23 @@ Once the containers are running, you can access the services through the followi
 
 #### 1. Airflow
 URL: http://localhost:8080
-Username: airflow
-Password: airflow
+   - **Username**: `airflow`
+   - **Password**: `airflow`
 #### 2. Metabase
 URL: http://localhost:3000
 Database: PostgreSQL
-Username: airflow
-Password: airflow
+   - **Username**: `airflow`
+   - **Password**: `airflow`
 #### 3. PostgreSQL
 Host: localhost
 Port: 5432
-Username: airflow
-Password: airflow
+   - **Username**: `airflow`
+   - **Password**: `airflow`  
 #### 4. MinIO
 API Access: http://localhost:9000
 Web UI: http://localhost:9001
-Access Key: admin
-Secret Key: admin123
+- **Access Key**: `admin`
+- **Secret Key**: `admin123`
 
 ### Running the DAG
 
