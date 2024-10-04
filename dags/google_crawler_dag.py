@@ -20,7 +20,18 @@ def scrape_apple_app_store_reviews_task(app_id, country):
 
 # Fetch DAG run configuration
 def scrape_config(**kwargs):
-    config = kwargs.get('dag_run').conf or {"google_app_id": [], "apple_app_id": [], "country": "vn"}
+    default_config = {   
+        "google_app_id": [
+            "vn.funzy.trieuhoansu3q",
+            "meow.senoidungso.tamquoc"
+        ],
+        "apple_app_id": [
+            "6504213798",
+            "6478906911"
+        ],
+        "country": "vn"
+    }
+    config = kwargs.get('dag_run').conf or default_config
     google_app_ids = config.get('google_app_id', [])
     apple_app_ids = config.get('apple_app_id', [])
     country = config.get('country', 'vn')
@@ -46,7 +57,7 @@ default_args = {
 with DAG(
     dag_id='scrape_reviews_dag',
     default_args=default_args,
-    schedule_interval=None,
+    schedule_interval='0 * * * *',
     start_date=datetime(2024, 10, 1),
     catchup=False,
 ) as dag:
