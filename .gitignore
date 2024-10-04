@@ -4,4 +4,4 @@ __pycache__/
 logs/*
 app_review_project/libs/spark-3.5.3-bin-hadoop3.tgz
 
-storage
+/storage
