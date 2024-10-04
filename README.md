@@ -42,8 +42,8 @@ Database: PostgreSQL
    - **Username**: `airflow`
    - **Password**: `airflow`
 #### 3. PostgreSQL
-Host: localhost
-Port: 5432
+   - **Host**: `localhost`
+   - **Port**: `5432`
    - **Username**: `airflow`
    - **Password**: `airflow`  
 #### 4. MinIO
