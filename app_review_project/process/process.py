@@ -8,18 +8,19 @@ from config.db_config import *
 import time
 
 def process_reviews():
+    project_dir = get_project_directory()
     
     # Initialize Spark session
     spark = SparkSession.builder \
         .appName("AppReviewPipeline") \
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.1,com.amazonaws:aws-java-sdk-bundle:1.11.901") \
         .config("spark.debug.maxToStringFields", "2000") \
-        .config("spark.jars", f"{get_project_directory()}/libs/postgresql-42.6.2.jar") \
+        .config("spark.jars", f"{project_dir}/libs/postgresql-42.6.2.jar, {project_dir}/libs/hadoop-aws-3.3.1.jar, {project_dir}/libs/aws-java-sdk-bundle-1.11.375.jar" ) \
         .config("spark.hadoop.fs.s3a.access.key", access_key) \
         .config("spark.hadoop.fs.s3a.secret.key", secret_key) \
         .config("spark.hadoop.fs.s3a.endpoint", endpoint) \
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
         .config("spark.hadoop.fs.s3a.path.style.access", "true") \
+        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
         .getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     
