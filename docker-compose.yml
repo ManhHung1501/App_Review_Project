@@ -159,7 +159,6 @@ services:
     command:
       - -c
       - |
-        ./scripts/load_env.sh
         exec /entrypoint airflow version
     environment:
       <<: *airflow-common-env
@@ -170,8 +169,6 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
-      - ${AIRFLOW_PROJ_DIR:-.}/scripts:/opt/airflow/scripts
-      - ${AIRFLOW_PROJ_DIR:-.}/app_review_project:/opt/airflow/app_review_project
 
 volumes:
   postgres-db-volume:
