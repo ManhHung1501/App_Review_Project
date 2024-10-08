@@ -3,9 +3,7 @@ from pyspark.sql.functions import col, regexp_replace, lower, to_timestamp
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, BooleanType, TimestampType
 from config.minio_config import *
 from config.common_config import get_project_directory
-from utils.db_utils import write_df,create_database, create_schema, pgsql_client
 from config.db_config import *
-import time
 
 def process_reviews():
     project_dir = get_project_directory()
@@ -25,7 +23,7 @@ def process_reviews():
     spark.sparkContext.setLogLevel("ERROR")
     
     # Define Apple App Store schema
-    apple_schema = StructType([
+    apple_app_schema = StructType([
         StructField("id", StringType(), True),
         StructField("type", StringType(), True),
         StructField("attributes", StructType([
@@ -46,6 +44,15 @@ def process_reviews():
         StructField("app_id", StringType(), True)
     ])
 
+    apple_web_schema = StructType([
+        StructField("user_name", StringType(), True),
+        StructField("title", StringType(), True),
+        StructField("rating", StringType(), True),
+        StructField("review", StringType(), True),
+        StructField("review_date", TimestampType(), True),
+        StructField("app_id", StringType(), True)
+    ])
+
     # Define Google Play schema
     google_schema = StructType([
         StructField('reviewId', StringType(), True),
@@ -63,32 +70,37 @@ def process_reviews():
     ])
 
     # Read Apple App Store reviews
-    apple_reviews = spark.read.json("s3a://app-reviews/appstore/*.json", schema = apple_schema)
+    apple_reviews_app = spark.read.json("s3a://app-reviews/appstore/app/*.json", schema = apple_app_schema) \
+                        .withColumn("review", col("attributes.review")) \
+                        .withColumn("rating", col("attributes.rating")) \
+                        .withColumn("user_name", col("attributes.userName")) \
+                        .withColumn("review_date", col("attributes.date")) \
+                        .withColumn("app_id", col("app_id")) \
+                        .select("review", "rating","user_name", "review_date", "app_id")
     
-    apple_reviews_clean = apple_reviews \
-        .withColumn("review", col("attributes.review")) \
-        .withColumn("rating", col("attributes.rating")) \
-        .withColumn("user_name", col("attributes.userName")) \
-        .withColumn("review_date", col("attributes.date")) \
-        .withColumn("app_id", col("app_id")) \
-        .select("review", "rating","user_name", "review_date", "app_id")
+    apple_reviews_web = spark.read.json("s3a://app-reviews/appstore/web/*.json", schema = apple_web_schema) \
+                        .withColumn("rating", col("rating").cast(IntegerType())) \
+                        .select("review", "rating","user_name", "review_date", "app_id")
+   
+    apple_reviews_combined = apple_reviews_app.unionByName(apple_reviews_web).cache()
+    
     print('Read apple reviews success')
 
     # Read Google Play Store reviews
-    google_reviews = spark.read.json("s3a://app-reviews/google_play/*.json",schema = google_schema)
+    google_reviews = spark.read.json("s3a://app-reviews/google_play/*.json",schema = google_schema) \
+                    .withColumnRenamed("content", "review") \
+                    .withColumnRenamed("score", "rating") \
+                    .withColumnRenamed("userName", "user_name") \
+                    .withColumnRenamed("at", "review_date") \
+                    .withColumn("review_date", to_timestamp(col("review_date"), "yyyy-MM-dd HH:mm:ss")) \
+                    .withColumn("app_id", col("app_id")) \
+                    .select("review", "rating","user_name", "review_date", "app_id").cache()
 
-    google_reviews_clean = google_reviews \
-        .withColumnRenamed("content", "review") \
-        .withColumnRenamed("score", "rating") \
-        .withColumnRenamed("userName", "user_name") \
-        .withColumnRenamed("at", "review_date") \
-        .withColumn("review_date", to_timestamp(col("review_date"), "yyyy-MM-dd HH:mm:ss")) \
-        .withColumn("app_id", col("app_id")) \
-        .select("review", "rating","user_name", "review_date", "app_id")
+        
     print('Read goolge reviews success')
 
     # Combine the two dataframes
-    df = apple_reviews_clean.unionByName(google_reviews_clean) \
+    df = apple_reviews_combined.unionByName(google_reviews) \
         .withColumn("review", lower(regexp_replace(col("review"), "[\.,\n!:();']", ""))) \
     
     
