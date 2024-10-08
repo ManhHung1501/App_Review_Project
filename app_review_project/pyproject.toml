@@ -2,7 +2,7 @@
 name = "app-review-crawler"
 version = "0.1.0"
 description = ""
-authors = ["ManhHung1501 <hungnm2@ftech.ai>"]
+authors = ["ManhHung1501 <hungnm15012002@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

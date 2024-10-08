@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, regexp_replace, lower, to_timestamp
+from pyspark.sql.functions import col, regexp_replace, lower, to_timestamp, lit
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, BooleanType, TimestampType
 from config.minio_config import *
 from config.common_config import get_project_directory
@@ -82,7 +82,8 @@ def process_reviews():
                         .withColumn("rating", col("rating").cast(IntegerType())) \
                         .select("review", "rating","user_name", "review_date", "app_id")
    
-    apple_reviews_combined = apple_reviews_app.unionByName(apple_reviews_web).cache()
+    apple_reviews_combined = apple_reviews_app.unionByName(apple_reviews_web).cache() \
+                            .withColumn("store", lit("apple"))
     
     print('Read apple reviews success')
 
@@ -94,7 +95,8 @@ def process_reviews():
                     .withColumnRenamed("at", "review_date") \
                     .withColumn("review_date", to_timestamp(col("review_date"), "yyyy-MM-dd HH:mm:ss")) \
                     .withColumn("app_id", col("app_id")) \
-                    .select("review", "rating","user_name", "review_date", "app_id").cache()
+                    .withColumn("store", lit("google")) \
+                    .select("review", "rating","user_name", "review_date", "app_id", "store").cache()
 
         
     print('Read goolge reviews success')
