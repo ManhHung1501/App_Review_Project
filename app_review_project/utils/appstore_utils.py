@@ -3,10 +3,6 @@ import requests
 import re
 import time
 from tqdm import tqdm
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, regexp_replace, lower
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType, BooleanType
-from utils.common_utils import parse_appstore_dates
 
 user_agents = [
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Safari/605.1.15',
