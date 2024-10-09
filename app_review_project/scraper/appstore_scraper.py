@@ -110,4 +110,4 @@ def get_reviews_appstore_web(country: str, app_id: str) -> dict:
         write_json_to_minio(minio_client, bucket_name, object_name, all_reviews)
         return all_reviews
     else:
-        logging.info(f"Failed to retrieve the reviews. Status code: {response.status_code}")
+        logging.error(f"Failed to retrieve the reviews. Status code: {response.status_code}")

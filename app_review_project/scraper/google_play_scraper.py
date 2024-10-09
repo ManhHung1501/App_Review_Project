@@ -6,11 +6,15 @@ import logging
 def get_google_play_reviews(app_id: str) -> list:
     start_time = time.time()
     logging.info(f"Begin to scrape reviews of {app_id} from Google play")
-    reviews = reviews_all(
-        app_id,
-        sleep_milliseconds=0,
-        sort=Sort.NEWEST
-    )
+    try:
+        reviews = reviews_all(
+            app_id,
+            sleep_milliseconds=0,
+            sort=Sort.NEWEST
+        )
+    except Exception as e:
+        logging.error(f"Failed to crawl data from google play with error {e}")
+
     for entry in reviews:
         entry['app_id'] = app_id
         entry['at'] = entry['at'].strftime('%Y-%m-%d %H:%M:%S')
