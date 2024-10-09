@@ -5,6 +5,7 @@ from airflow.operators.python_operator import PythonOperator
 from app_review_project.utils.db_utils import write_df,create_database,create_schema,pgsql_client
 from app_review_project.process.process import process_reviews
 from app_review_project.config.db_config import *
+from loguru import logger
 
 # Default arguments for the DAG
 default_args = {
@@ -31,7 +32,7 @@ project_dir = get_project_directory()
 
 def run_process_review():
     start = datetime.now()
-    print('Begin to process reviews ...')
+    logger.info('Begin to process reviews ...')
     df = process_reviews()
     create_database(db_name)
     con = pgsql_client(db_name)
@@ -41,7 +42,7 @@ def run_process_review():
     write_df(df,'reviews','all_reviews')
     cursor.close()
     con.close()
-    print(f'Process reviews succes in {datetime.now()- start}')
+    logger.info(f'Process reviews succes in {datetime.now()- start}')
 
 process_reviews_task = PythonOperator(
         dag = dag,

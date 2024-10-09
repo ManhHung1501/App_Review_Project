@@ -4,23 +4,29 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 from config.minio_config import *
 from config.common_config import get_project_directory
 from config.db_config import *
+from loguru import logger
+
 
 def process_reviews():
     project_dir = get_project_directory()
     
     # Initialize Spark session
-    spark = SparkSession.builder \
-        .appName("AppReviewPipeline") \
-        .config("spark.debug.maxToStringFields", "2000") \
-        .config("spark.jars", f"{project_dir}/libs/postgresql-42.6.2.jar, {project_dir}/libs/hadoop-aws-3.3.1.jar, {project_dir}/libs/aws-java-sdk-bundle-1.11.375.jar" ) \
-        .config("spark.hadoop.fs.s3a.access.key", access_key) \
-        .config("spark.hadoop.fs.s3a.secret.key", secret_key) \
-        .config("spark.hadoop.fs.s3a.endpoint", endpoint) \
-        .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
-        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-        .getOrCreate()
-    spark.sparkContext.setLogLevel("ERROR")
+    try:
+        spark = SparkSession.builder \
+            .appName("AppReviewPipeline") \
+            .config("spark.debug.maxToStringFields", "2000") \
+            .config("spark.jars", f"{project_dir}/libs/postgresql-42.6.2.jar, {project_dir}/libs/hadoop-aws-3.3.1.jar, {project_dir}/libs/aws-java-sdk-bundle-1.11.375.jar" ) \
+            .config("spark.hadoop.fs.s3a.access.key", access_key) \
+            .config("spark.hadoop.fs.s3a.secret.key", secret_key) \
+            .config("spark.hadoop.fs.s3a.endpoint", endpoint) \
+            .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
+            .config("spark.hadoop.fs.s3a.path.style.access", "true") \
+            .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+            .getOrCreate()
+        
+        logger.info("Spark session successfully created.")
+    except Exception as e:
+        logger.error(f"Error occurred during Spark session initialization: {e}")
     
     # Define Apple App Store schema
     apple_app_schema = StructType([
@@ -85,7 +91,7 @@ def process_reviews():
     apple_reviews_combined = apple_reviews_app.unionByName(apple_reviews_web).cache() \
                             .withColumn("store", lit("apple"))
     
-    print('Read apple reviews success')
+    logger.info('Process apple reviews success')
 
     # Read Google Play Store reviews
     google_reviews = spark.read.json("s3a://app-reviews/google_play/*.json",schema = google_schema) \
@@ -99,11 +105,11 @@ def process_reviews():
                     .select("review", "rating","user_name", "review_date", "app_id", "store").cache()
 
         
-    print('Read goolge reviews success')
+    logger.info('Process goolge reviews success')
 
     # Combine the two dataframes
     df = apple_reviews_combined.unionByName(google_reviews) \
-        .withColumn("review", lower(regexp_replace(col("review"), "[\.,\n!:();']", ""))) \
+        .withColumn("review", lower(regexp_replace(col("review"), "[\.,\n!:();']", "")))
     
     
     return df

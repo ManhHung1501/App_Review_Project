@@ -3,11 +3,14 @@ import requests
 import re
 import time
 from tqdm import tqdm
+from loguru import logger
 
 user_agents = [
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Safari/605.1.15',
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
         ]
+
+
 
 def get_token(country:str , app_id: str):
 
@@ -21,7 +24,7 @@ def get_token(country:str , app_id: str):
                             )
     
     if response.status_code != 200:
-        print(f"GET request failed. Response: {response.status_code} {response.reason}")
+        logger.info(f"GET request failed. Response: {response.status_code} {response.reason}")
         return
     
     tags = response.text.splitlines()
@@ -29,7 +32,7 @@ def get_token(country:str , app_id: str):
         if re.match(r"<meta.+web-experience-app/config/environment", tag):
             token = re.search(r"token%22%3A%22(.+?)%22", tag).group(1)
     
-    print(f"Bearer {token}")
+    logger.info(f"Bearer {token}")
     return token
     
 def fetch_reviews(country:str , app_id: str, token: str, offset: str = '1'):
@@ -83,7 +86,7 @@ def fetch_reviews(country:str , app_id: str, token: str, offset: str = '1'):
             result = response.json()
             reviews = result['data']
             if len(reviews) < 20:
-                print(f"{len(reviews)} reviews scraped. This is fewer than the expected 20.")
+                logger.info(f"{len(reviews)} reviews scraped. This is fewer than the expected 20.")
             break
 
         # FAILURE
@@ -93,7 +96,7 @@ def fetch_reviews(country:str , app_id: str, token: str, offset: str = '1'):
                 # Perform backoff using retry_count as the backoff factor
                 retry_count += 1
                 backoff_time = BASE_DELAY_SECS * retry_count
-                print(f"Rate limited! Retrying ({retry_count}/{MAX_RETRIES}) after {backoff_time} seconds...")
+                logger.info(f"Rate limited! Retrying ({retry_count}/{MAX_RETRIES}) after {backoff_time} seconds...")
                 
                 with tqdm(total=backoff_time, unit="sec", ncols=50) as pbar:
                     for _ in range(backoff_time):
@@ -103,20 +106,20 @@ def fetch_reviews(country:str , app_id: str, token: str, offset: str = '1'):
 
             # NOT FOUND
             elif response.status_code == 404:
-                print(f"{response.status_code} {response.reason}. There are no more reviews.")
+                logger.info(f"{response.status_code} {response.reason}. There are no more reviews.")
                 break
                 
             else:
-                print(f"GET request failed. Response: {response.status_code} {response.reason}")
+                logger.info(f"GET request failed. Response: {response.status_code} {response.reason}")
 
     ## Final output ---------------------------------------------------------
     # Get pagination offset for next request
     if 'next' in result and result['next'] is not None:
         offset = re.search("^.+offset=([0-9]+).*$", result['next']).group(1)
-        print(f"Offset: {offset}")
+        logger.info(f"Offset: {offset}")
     else:
         offset = None
-        print("No offset found.")
+        logger.info("No offset found.")
 
     # Append offset, number of reviews in batch, and app_id
     for rev in reviews:

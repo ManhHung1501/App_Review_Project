@@ -2,17 +2,28 @@ import psycopg2
 from psycopg2 import sql
 from pyspark.sql import DataFrame
 from config.db_config import *
+from loguru import logger
 
 def pgsql_client(db_name):
-    conn = psycopg2.connect(
-        dbname=db_name,
-        user=db_user, 
-        password=db_password,  
-        host=db_host,  
-        port=db_port  
-    )
-    conn.autocommit = True
-    return conn
+    try:
+        logger.info(f"Attempting to connect to PostgreSQL database: {db_name} on host: {db_host}:{db_port}")
+        
+        # Establish connection
+        conn = psycopg2.connect(
+            dbname=db_name,
+            user=db_user, 
+            password=db_password,  
+            host=db_host,  
+            port=db_port  
+        )
+        
+        conn.autocommit = True
+        logger.info(f"Successfully connected to PostgreSQL database: {db_name}")
+        return conn
+    
+    except psycopg2.DatabaseError as e:
+        logger.error(f"Failed to connect to PostgreSQL database: {db_name}. Error: {e}")
+        raise
 
 def create_database(db_name: str):
     # Connect to PostgreSQL server (default database is usually 'postgres')
@@ -37,9 +48,9 @@ def create_database(db_name: str):
     if not exists:
         # Create the AppReviewDB database if it doesn't exist
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name)))
-        print(f"Database {db_name} created successfully!")
+        logger.info(f"Database {db_name} created successfully!")
     else:
-        print(f"Database {db_name} already exists.")
+        logger.info(f"Database {db_name} already exists.")
 
     # Close the connection and cursor
     cursor.close()
@@ -72,9 +83,6 @@ def delete_with_app_id(cursor, schema: str ,table: str, app_id: str):
 
 
 def write_df(df: DataFrame, schema: str, table: str):
-    # tb_exists = check_table_exists(cursor, schema, table)
-    # mode = "append" if tb_exists else "overwrite"
-    
     df.write.format("jdbc") \
         .option("url", f"jdbc:postgresql://{db_host}:{db_port}/{db_name}") \
         .option("user", db_user) \
