@@ -4,7 +4,7 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 from config.minio_config import *
 from config.common_config import get_project_directory
 from config.db_config import *
-from loguru import logger
+import logging
 
 
 def process_reviews():
@@ -24,9 +24,9 @@ def process_reviews():
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
             .getOrCreate()
         
-        logger.info("Spark session successfully created.")
+        logging.info("Spark session successfully created.")
     except Exception as e:
-        logger.error(f"Error occurred during Spark session initialization: {e}")
+        logging.error(f"Error occurred during Spark session initialization: {e}")
     
     # Define Apple App Store schema
     apple_app_schema = StructType([
@@ -91,7 +91,7 @@ def process_reviews():
     apple_reviews_combined = apple_reviews_app.unionByName(apple_reviews_web).cache() \
                             .withColumn("store", lit("apple"))
     
-    logger.info('Process apple reviews success')
+    logging.info('Process apple reviews success')
 
     # Read Google Play Store reviews
     google_reviews = spark.read.json("s3a://app-reviews/google_play/*.json",schema = google_schema) \
@@ -105,7 +105,7 @@ def process_reviews():
                     .select("review", "rating","user_name", "review_date", "app_id", "store").cache()
 
         
-    logger.info('Process goolge reviews success')
+    logging.info('Process goolge reviews success')
 
     # Combine the two dataframes
     df = apple_reviews_combined.unionByName(google_reviews) \

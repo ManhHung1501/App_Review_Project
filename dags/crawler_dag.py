@@ -6,15 +6,15 @@ from app_review_project.scraper.google_play_scraper import get_google_play_revie
 from app_review_project.scraper.appstore_scraper import get_appstore_reviews_app, get_reviews_appstore_web
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.utils.task_group import TaskGroup
-
+import logging
 
 def scrape_google_play_reviews_task(app_id):
-    print(f"Scraping Google Play reviews for app_id: {app_id}")
+    logging.info(f"Scraping Google Play reviews for app_id: {app_id}")
     get_google_play_reviews(app_id)
 
 
 def scrape_apple_app_store_reviews_task(app_id, country):
-    print(f"Scraping App Store reviews for app_id: {app_id}")
+    logging.info(f"Scraping App Store reviews for app_id: {app_id}")
     get_appstore_reviews_app(country, app_id)
     get_reviews_appstore_web(country, app_id)
 

@@ -4,6 +4,7 @@ import time
 from utils.minio_utils import init_minio_client, write_json_to_minio
 import requests
 from bs4 import BeautifulSoup
+import logging
 
 def get_appstore_reviews_app(country: str, app_id: str) -> list:
     all_reviews = []
@@ -18,17 +19,17 @@ def get_appstore_reviews_app(country: str, app_id: str) -> list:
                                                     app_id=app_id, 
                                                     token=token, 
                                                     offset=offset)
-        print(f"Current response code: {response_code} | Next offset: {offset}.")
+        logging.info(f"Current response code: {response_code} | Next offset: {offset}.")
         all_reviews.extend(reviews)
 
 
-    print(f"Completed scraping {len(all_reviews)} reviews in {(time.time() - start_time)/60:.2f} minutes.")
+    logging.info(f"Completed scraping {len(all_reviews)} reviews in {(time.time() - start_time)/60:.2f} minutes.")
     # --------------------------------------------------------------------------
 
     # Check max offset
     max_offset = np.nanmax([int(rev['offset']) for rev in all_reviews 
                             if rev['offset'] is not None and rev['n_batch'] == 20])
-    print(f"Backed up till offset {max_offset}.")
+    logging.info(f"Backed up till offset {max_offset}.")
 
     # Define bucket and object name
     bucket_name = "app-reviews"
@@ -45,7 +46,7 @@ def get_appstore_reviews_app(country: str, app_id: str) -> list:
 
 def get_reviews_appstore_web(country: str, app_id: str) -> dict:
     start_time = time.time()
-    print(f"Begin to scrape reviews of {app_id} from AppStore Web")
+    logging.info(f"Begin to scrape reviews of {app_id} from AppStore Web")
 
     url = f"https://apps.apple.com/{country}/app/'app'/id{app_id}?see-all=reviews"
 
@@ -95,7 +96,7 @@ def get_reviews_appstore_web(country: str, app_id: str) -> dict:
                 }
             )
         
-        print(f"Completed scraping {len(reviews)} reviews in {(time.time() - start_time)/60:.2f} minutes.")
+        logging.info(f"Completed scraping {len(reviews)} reviews in {(time.time() - start_time)/60:.2f} minutes.")
 
         # Define bucket and object name
         bucket_name = "app-reviews"
@@ -109,4 +110,4 @@ def get_reviews_appstore_web(country: str, app_id: str) -> dict:
         write_json_to_minio(minio_client, bucket_name, object_name, all_reviews)
         return all_reviews
     else:
-        print(f"Failed to retrieve the reviews. Status code: {response.status_code}")
+        logging.info(f"Failed to retrieve the reviews. Status code: {response.status_code}")

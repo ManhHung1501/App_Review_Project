@@ -1,10 +1,11 @@
 from google_play_scraper import Sort, reviews_all
 from utils.minio_utils import init_minio_client, write_json_to_minio
 import time
+import logging
 
 def get_google_play_reviews(app_id: str) -> list:
     start_time = time.time()
-    print(f"Begin to scrape reviews of {app_id} from Google play")
+    logging.info(f"Begin to scrape reviews of {app_id} from Google play")
     reviews = reviews_all(
         app_id,
         sleep_milliseconds=0,
@@ -26,5 +27,5 @@ def get_google_play_reviews(app_id: str) -> list:
 
     write_json_to_minio(minio_client, bucket_name, object_name, reviews)
 
-    print(f"Completed scraping {len(reviews)} reviews in {(time.time() - start_time)/60:.2f} minutes.")
+    logging.info(f"Completed scraping {len(reviews)} reviews in {(time.time() - start_time)/60:.2f} minutes.")
     return reviews

@@ -2,11 +2,11 @@ import psycopg2
 from psycopg2 import sql
 from pyspark.sql import DataFrame
 from config.db_config import *
-from loguru import logger
+import logging
 
 def pgsql_client(db_name):
     try:
-        logger.info(f"Attempting to connect to PostgreSQL database: {db_name} on host: {db_host}:{db_port}")
+        logging.info(f"Attempting to connect to PostgreSQL database: {db_name} on host: {db_host}:{db_port}")
         
         # Establish connection
         conn = psycopg2.connect(
@@ -18,11 +18,11 @@ def pgsql_client(db_name):
         )
         
         conn.autocommit = True
-        logger.info(f"Successfully connected to PostgreSQL database: {db_name}")
+        logging.info(f"Successfully connected to PostgreSQL database: {db_name}")
         return conn
     
     except psycopg2.DatabaseError as e:
-        logger.error(f"Failed to connect to PostgreSQL database: {db_name}. Error: {e}")
+        logging.error(f"Failed to connect to PostgreSQL database: {db_name}. Error: {e}")
         raise
 
 def create_database(db_name: str):
@@ -48,9 +48,9 @@ def create_database(db_name: str):
     if not exists:
         # Create the AppReviewDB database if it doesn't exist
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name)))
-        logger.info(f"Database {db_name} created successfully!")
+        logging.info(f"Database {db_name} created successfully!")
     else:
-        logger.info(f"Database {db_name} already exists.")
+        logging.info(f"Database {db_name} already exists.")
 
     # Close the connection and cursor
     cursor.close()
@@ -91,3 +91,4 @@ def write_df(df: DataFrame, schema: str, table: str):
         .option("driver", "org.postgresql.Driver") \
         .mode("overwrite") \
         .save()
+    logging.info(f'Successfully write data to table {schema}.{table} in PostgreSQL')
