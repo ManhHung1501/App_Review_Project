@@ -33,15 +33,20 @@ project_dir = get_project_directory()
 def run_process_review():
     start = datetime.now()
     logging.info('Begin to process reviews ...')
-    df = process_reviews()
+    
+    logging.info('Checking if database exist ...')
     create_database(db_name)
     con = pgsql_client(db_name)
     cursor = con.cursor()
     schema_name = 'reviews'
     create_schema(cursor, schema_name)
-    write_df(df,'reviews','all_reviews')
     cursor.close()
     con.close()
+
+    logging.info('Processing reivews ...')
+    df = process_reviews()
+    write_df(df,schema_name,'all_reviews')
+    
     logging.info(f'Process reviews succes in {datetime.now()- start}')
 
 process_reviews_task = PythonOperator(
